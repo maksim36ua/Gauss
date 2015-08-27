@@ -21,14 +21,14 @@ namespace Test_program__Gauss_
 
         public GaussMatrix(int tempSize)
         {
-            size = tempSize;
-            matrix = new float[size, size];
-            vector = new float[size];
-            originalMatrix = new float[size, size];
-            originalVector = new float[size];
+            size = tempSize; // Розміірність матриць
+            matrix = new float[size, size]; // Основна матриця коефіцієнтів
+            vector = new float[size]; // Основний вектор вільних членів
+            originalMatrix = new float[size, size]; // Резервна копія початкової матриці коефіцієнтів
+            originalVector = new float[size]; // Резервна копія вектору вільних членів
             answers = new float[size]; // Вектор відповідей
-            answersSequence = new float[size];
-            error = new float[size];
+            answersSequence = new float[size]; // Порядок коренів, який буде змінюватись в результаті перестановки рядків
+            error = new float[size]; // Вектор помилок
         }
 
         public void EnterMatrix()
@@ -92,12 +92,11 @@ namespace Test_program__Gauss_
 
             }
 
-            for (int i = 0; i < size; i++) // Створюємо копії початкових матриць
+            for (int i = 0; i < size; i++) // Створення копій початкових матриць
             {
                 for (int j = 0; j < size; j++)
                     originalMatrix[i, j] = matrix[i, j];
                 originalVector[i] = vector[i];
-                error[i] = vector[i]; //Перенос вільних членів у вектор нев'язки (для бчислення похибки)
             }
 
             for (int i = 0; i < size; i++) // Масив з індексами коренів. Масив відповідей буде відсортований відповідно до цієї послідовності
@@ -190,10 +189,6 @@ namespace Test_program__Gauss_
                         temp2 = answers[sort + 1]; // Сортується масив відповідей
                         answers[sort + 1] = answers[sort];
                         answers[sort] = temp2;
-
-                        temp3 = error[sort + 1]; // Сортується масив відповідей
-                        error[sort + 1] = error[sort];
-                        error[sort] = temp3;
                     }
                 }
             }
@@ -204,11 +199,15 @@ namespace Test_program__Gauss_
 
         public void GaussError()
         {
+
             for (int i = 0; i < size; i++) // Обчислення нев'язки для першого кроку системи
+            {
+                error[i] = originalVector[i]; //Перенос вільних членів у вектор нев'язки (для обчислення похибки)
                 for (int j = 0; j < size; j++)
                 {
                     error[i] = error[i] - originalMatrix[i, j] * answers[j];
                 }
+            }
 
             Console.WriteLine("\nERRORS:");
             foreach (var x in error)
@@ -246,10 +245,6 @@ namespace Test_program__Gauss_
                 float tempForAnswers = answersSequence[mainIndex]; // Міняються місцями елементи вектора, що містить порядок коренів 
                 answersSequence[mainIndex] = answersSequence[indexWithMaxElement];
                 answersSequence[indexWithMaxElement] = tempForAnswers;
-
-                float tempForErrors = error[mainIndex]; // Міняються місцями елементи вектора помилок
-                error[mainIndex] = error[indexWithMaxElement];
-                error[indexWithMaxElement] = tempForErrors;
 
                 Console.WriteLine("\nAFTER SWAP\n");
             }
