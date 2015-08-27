@@ -9,7 +9,7 @@ namespace Test_program__Gauss_
 {
     public class GaussMatrix
     {
-        private int size;
+        private int size { get; set; }
         private float[,] matrix { get; set; }
         private float[,] originalMatrix { get; set; }
         private float[] vector { get; set; }
@@ -38,7 +38,7 @@ namespace Test_program__Gauss_
             while (selection != "c" && selection != "f")
             {
                 selection = Console.ReadLine();
-                selection.ToLower();
+                selection = selection.ToLower();
             }
             if (selection == "c")
             {
@@ -47,8 +47,10 @@ namespace Test_program__Gauss_
                 {
                     for (int j = 0; j < size; j++)
                     {
-                        Console.Write("[{0},{1}] = ", i + 1, j + 1);
-                        matrix[i, j] = float.Parse(Console.ReadLine());
+                        do
+                        {
+                            Console.Write("[{0},{1}] = ", i + 1, j + 1);                            
+                        } while(!float.TryParse(Console.ReadLine(), out matrix[i, j])); 
                     }
                 }
 
@@ -56,8 +58,10 @@ namespace Test_program__Gauss_
 
                 for (int i = 0; i < size; i++)
                 {
-                    Console.Write("[{0}] = ", i + 1);
-                    vector[i] = float.Parse(Console.ReadLine());
+                    do
+                    {
+                        Console.Write("[{0}] = ", i + 1);
+                    } while (!float.TryParse(Console.ReadLine(), out vector[i])); 
                 }
             }
 
@@ -126,17 +130,13 @@ namespace Test_program__Gauss_
 
         public void GaussForward()
         {
+            Console.WriteLine("\nFORWARD\n");
             float mainElement = 0; // Ведучий елемент. mainIndex - індекси ведучого елементу
             for (int mainIndex = 0; mainIndex < size; mainIndex++) // Прямий хід
             {
-                Console.WriteLine("\nMAIN ELEMENT [{0},{0}] = {1}\n", mainIndex, mainElement);
-                Console.WriteLine("\nBEFORE SWAP\n");
-                PrintData();
-                
+                Console.WriteLine("\nMAIN ELEMENT [{0},{0}] = {1}\n", mainIndex, mainElement);                
                 SwapColumns(mainIndex); // Вибір головного елементу по стрічці
-                Console.WriteLine("\nAFTER SWAP\n");
                 PrintData();
-
                 mainElement = matrix[mainIndex, mainIndex];
 
                 for (int j = 0; j < size; j++) // Ділимо рядок на головний елемент, щоб головний елемент був == 1
@@ -150,7 +150,7 @@ namespace Test_program__Gauss_
                     float lowMainElement = matrix[i, mainIndex]; // Перший елемент наступного рядка, який перетворюємо в 0
                     for (int j = 0; j < size; j++) // Цикл по стовпцям, множить попередній рядок на lowMainElement і віднімає від поточного рядка
                     {
-                        Console.WriteLine("matrix[{0}, {1}]{4} = matrix[{0}, {1}]{4} - {2} * matrix[{3}, {1}]{5};", i, j, lowMainElement, mainIndex, matrix[i, j], matrix[mainIndex, j]);
+                       // Console.WriteLine("matrix[{0}, {1}]{4} = matrix[{0}, {1}]{4} - {2} * matrix[{3}, {1}]{5};", i, j, lowMainElement, mainIndex, matrix[i, j], matrix[mainIndex, j]);
                         matrix[i, j] = matrix[i, j] - lowMainElement * matrix[mainIndex, j];
                     }
 
@@ -161,6 +161,7 @@ namespace Test_program__Gauss_
 
         public void GaussBackwards()
         {
+            Console.WriteLine("\nBACKWARDS\n");
             answers[size - 1] = vector[size - 1] / matrix[size - 1, size - 1]; // Остання невідома х в результаті перетворень
 
             for (int i = size - 2; i >= 0; i--) // Зворотній хід
@@ -180,9 +181,9 @@ namespace Test_program__Gauss_
             {
                 for (int sort = 0; sort < size - 1; sort++) 
                 {
-                    if (answersSequence[sort] > answersSequence[sort + 1]) 
+                    if (answersSequence[sort] > answersSequence[sort + 1]) // Так, цей шмат коду жахливий
                     {
-                        temp = answersSequence[sort + 1]; // СОртуються елементи масиву, що містить послідовність коренів
+                        temp = answersSequence[sort + 1]; // Сортуються елементи масиву, що містить послідовність коренів
                         answersSequence[sort + 1] = answersSequence[sort];
                         answersSequence[sort] = temp;
 
@@ -232,6 +233,9 @@ namespace Test_program__Gauss_
 
             if (maxElement != matrix[mainIndex, mainIndex])
             {
+                Console.WriteLine("\nBEFORE SWAP\n");
+                PrintData();
+
                 for (int i = 0; i < size; i++) // Заміна стовпців
                 {
                     float tempForMatrix = matrix[i, mainIndex];
@@ -239,27 +243,15 @@ namespace Test_program__Gauss_
                     matrix[i, indexWithMaxElement] = tempForMatrix;
                 }
                 
-                Console.WriteLine("\nANSWERS\n");
-                foreach (var x in answersSequence)
-                    Console.Write("{0} ",x);
-                Console.WriteLine();
-                float tempForAnswers = answersSequence[mainIndex];
+                float tempForAnswers = answersSequence[mainIndex]; // Міняються місцями елементи вектора, що містить порядок коренів 
                 answersSequence[mainIndex] = answersSequence[indexWithMaxElement];
                 answersSequence[indexWithMaxElement] = tempForAnswers;
-                foreach (var x in answersSequence)
-                    Console.Write("{0} ",x);
 
-                Console.WriteLine("\nERRORS\n");
-                foreach (var x in error)
-                    Console.Write("{0} ",x);
-                Console.WriteLine();
-                float tempForErrors = error[mainIndex];
+                float tempForErrors = error[mainIndex]; // Міняються місцями елементи вектора помилок
                 error[mainIndex] = error[indexWithMaxElement];
                 error[indexWithMaxElement] = tempForErrors;
-                foreach (var x in error)
-                    Console.Write("{0} ",x);
-                
 
+                Console.WriteLine("\nAFTER SWAP\n");
             }
         }
     }
@@ -269,8 +261,11 @@ namespace Test_program__Gauss_
         static void Main(string[] args)
         {
             int tempSize = 0;
-            Console.WriteLine("Enter size of matrix");
-            tempSize = int.Parse(Console.ReadLine());
+            do
+            {
+                Console.WriteLine("Enter size of matrix");
+            } while (!Int32.TryParse(Console.ReadLine(), out tempSize));
+
             GaussMatrix GaussObject = new GaussMatrix(tempSize);
             GaussObject.EnterMatrix();
             Console.WriteLine("\nYou entered:");
