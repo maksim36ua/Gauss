@@ -10,6 +10,7 @@ namespace Test_program__Gauss_
     public class GaussMatrix
     {
         private int size { get; set; }
+        private int roundValue { get; set; }
         private float[,] matrix { get; set; }
         private float[,] originalMatrix { get; set; }
         private float[] vector { get; set; }
@@ -19,9 +20,10 @@ namespace Test_program__Gauss_
         private float[] error { get; set; }
 
 
-        public GaussMatrix(int tempSize)
+        public GaussMatrix(int tempSize, int round)
         {
-            size = tempSize; // Розміірність матриць
+            size = Math.Abs(tempSize); // Розмірність матриць
+            roundValue = Math.Abs(round); // Кількість знаків, до якої будуть округлятись відповіді
             matrix = new float[size, size]; // Основна матриця коефіцієнтів
             vector = new float[size]; // Основний вектор вільних членів
             originalMatrix = new float[size, size]; // Резервна копія початкової матриці коефіцієнтів
@@ -40,7 +42,8 @@ namespace Test_program__Gauss_
                 selection = Console.ReadLine();
                 selection = selection.ToLower();
             }
-            if (selection == "c")
+
+            if (selection == "c") // Введення через консоль
             {
                 Console.WriteLine("\nEnter matrix of coefficients");
                 for (int i = 0; i < size; i++)
@@ -65,7 +68,7 @@ namespace Test_program__Gauss_
                 }
             }
 
-            else
+            else // Введення через зчитування файлу
             {
                 Console.WriteLine("Main matrix and vector of answers should be in separate files. One value in one line.");
                 Console.WriteLine("Values are read from left to right, filling up matrix by lines: [1,1], [1,2], [1,3]...");
@@ -109,7 +112,7 @@ namespace Test_program__Gauss_
             {
                 for (int j = 0; j < size; j++)
                 {
-                    Console.Write("{0:0.###} ", matrix[i, j]);
+                    Console.Write("{0:0.###}\t", matrix[i, j]);
                 }
                 Console.Write(" = {0:0.###}", vector[i]);
                 Console.WriteLine();
@@ -138,15 +141,22 @@ namespace Test_program__Gauss_
                 PrintData();
                 mainElement = matrix[mainIndex, mainIndex];
 
-                for (int j = 0; j < size; j++) // Ділимо рядок на головний елемент, щоб головний елемент був == 1
+                if (0 == mainElement)
+                {
+                    Console.WriteLine("Oooops, main element is 0. Program can`t solve this matrix using only row reduction.\nProgram will exit now. Press any key.");
+                    Console.Read();
+                    Environment.Exit(0);
+                }
+
+                for (int j = 0; j < size; j++) // Рядок ділиться на головний елемент, щоб головний елемент був == 1
                 {
                     matrix[mainIndex, j] = matrix[mainIndex, j] / mainElement;
                 }
                 vector[mainIndex] = vector[mainIndex] / mainElement;
 
-                for (int i = mainIndex + 1; i < size; i++) // Домножаємо попередній рядок на перший коефіцієнт головного рядка. Робимо нулі
+                for (int i = mainIndex + 1; i < size; i++) // Попередній рядок домножається на перший коефіцієнт головного рядка.
                 {
-                    float lowMainElement = matrix[i, mainIndex]; // Перший елемент наступного рядка, який перетворюємо в 0
+                    float lowMainElement = matrix[i, mainIndex]; // Перший елемент наступного рядка, який перетворюється в 0
                     for (int j = 0; j < size; j++) // Цикл по стовпцям, множить попередній рядок на lowMainElement і віднімає від поточного рядка
                     {
                        // Console.WriteLine("matrix[{0}, {1}]{4} = matrix[{0}, {1}]{4} - {2} * matrix[{3}, {1}]{5};", i, j, lowMainElement, mainIndex, matrix[i, j], matrix[mainIndex, j]);
@@ -161,27 +171,33 @@ namespace Test_program__Gauss_
         public void GaussBackwards()
         {
             Console.WriteLine("\nBACKWARDS\n");
-            answers[size - 1] = vector[size - 1] / matrix[size - 1, size - 1]; // Остання невідома х в результаті перетворень
+            answers[size - 1] = (float)Math.Round(vector[size - 1] / matrix[size - 1, size - 1], roundValue); // Остання невідома х в результаті перетворень
 
             for (int i = size - 2; i >= 0; i--) // Зворотній хід
             {
                 for (int j = size - 1; j > i; j--)
                 {
-                    vector[i] = vector[i] - matrix[i, j] * answers[j]; // від вектора вільних членів послідовно віднімаємо кожен коефіцієнт, множений на відповідний йому х
+                    vector[i] = vector[i] - matrix[i, j] * answers[j]; // Від вектора вільних членів послідовно віднімається кожен коефіцієнт, множений на відповідний йому х
                     Console.WriteLine();
                     PrintData();
                 }
-                answers[i] = (float)Math.Round(vector[i], 2);
+                answers[i] = (float)Math.Round(vector[i], roundValue);
             }
 
-            float temp = 0, temp2 = 0, temp3 = 0;
+            float temp = 0, temp2 = 0;
 
             for (int write = 0; write < size; write++) // Сортування бульбашкою вектора відповідей у відповідності до переставлених стовпчиків
             {
                 for (int sort = 0; sort < size - 1; sort++) 
                 {
-                    if (answersSequence[sort] > answersSequence[sort + 1]) // Так, цей шмат коду жахливий
+                    if (answersSequence[sort] > answersSequence[sort + 1]) 
                     {
+                        /*
+                         * Так, цей шмат коду жахливий. 
+                         * Але іншого способу переставляти корені місцями під час заміни стовпців не знайшов
+                         * з огляду на те, що вони стають відомі лише на попередньому кроці. 
+                         */
+
                         temp = answersSequence[sort + 1]; // Сортуються елементи масиву, що містить послідовність коренів
                         answersSequence[sort + 1] = answersSequence[sort];
                         answersSequence[sort] = temp;
@@ -228,9 +244,9 @@ namespace Test_program__Gauss_
                 }
             }
 
-            Console.WriteLine("The biggest element in line {0} is {1}, column {2}", mainIndex, maxElement, indexWithMaxElement);
+            Console.WriteLine("The biggest element in line {0} is {1}, column {2}", mainIndex + 1, maxElement, indexWithMaxElement + 1);
 
-            if (maxElement != matrix[mainIndex, mainIndex])
+            if (maxElement != matrix[mainIndex, mainIndex]) 
             {
                 Console.WriteLine("\nBEFORE SWAP\n");
                 PrintData();
@@ -255,13 +271,19 @@ namespace Test_program__Gauss_
     {
         static void Main(string[] args)
         {
-            int tempSize = 0;
+            int tempSize = 0, round = 0;
+
             do
             {
                 Console.WriteLine("Enter size of matrix");
             } while (!Int32.TryParse(Console.ReadLine(), out tempSize));
 
-            GaussMatrix GaussObject = new GaussMatrix(tempSize);
+            do
+            {
+                Console.WriteLine("Enter number of digits after comma to round the answers.\nLess digits after comma - higher error (especially when one of the coefficients is much bigger then others)");
+            } while (!Int32.TryParse(Console.ReadLine(), out round));
+
+            GaussMatrix GaussObject = new GaussMatrix(tempSize, round);
             GaussObject.EnterMatrix();
             Console.WriteLine("\nYou entered:");
             GaussObject.PrintData();
