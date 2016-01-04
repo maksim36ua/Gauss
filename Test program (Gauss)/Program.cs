@@ -192,12 +192,6 @@ namespace Test_program__Gauss_
                 {
                     if (answersSequence[sort] > answersSequence[sort + 1]) 
                     {
-                        /*
-                         * Так, цей шмат коду жахливий. 
-                         * Але іншого способу переставляти корені місцями під час заміни стовпців не знайшов
-                         * з огляду на те, що вони стають відомі лише на попередньому кроці. 
-                         */
-
                         temp = answersSequence[sort + 1]; // Сортуються елементи масиву, що містить послідовність коренів
                         answersSequence[sort + 1] = answersSequence[sort];
                         answersSequence[sort] = temp;
